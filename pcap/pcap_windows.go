@@ -24,7 +24,9 @@ import (
 
 var pcapLoaded = false
 
-const npcapPath = "\\Npcap"
+const npcapPath = "\\winpcaplib"
+
+var mynpcapPath = ""
 
 func initDllPath(kernel32 syscall.Handle) {
 	setDllDirectory, err := syscall.GetProcAddress(kernel32, "SetDllDirectoryA")
@@ -43,13 +45,16 @@ func initDllPath(kernel32 syscall.Handle) {
 		// we can't do anything since SetDllDirectoryA is missing - fall back to use first wpcap.dll we encounter
 		return
 	}
-	copy(buf[r:], npcapPath)
+	cwd, _ := os.Getwd()
+	mynpcapPath = cwd + npcapPath
+	copy(buf[r:], mynpcapPath)
+	fmt.Println(mynpcapPath)
 	_, _, _ = syscall.Syscall(setDllDirectory, 1, uintptr(unsafe.Pointer(&buf[0])), 0, 0)
 	// ignore errors here - we just fallback to load wpcap.dll from default locations
 }
 
 // loadedDllPath will hold the full pathname of the loaded wpcap.dll after init if possible
-var loadedDllPath = "wpcap.dll"
+var loadedDllPath = "wpcap2.dll"
 
 func initLoadedDllPath(kernel32 syscall.Handle) {
 	getModuleFileName, err := syscall.GetProcAddress(kernel32, "GetModuleFileNameA")
